@@ -4,9 +4,10 @@ set -e
 
 prj_path=$(cd $(dirname $0); pwd -P)
 
-ss_image=easypi/shadowsocks-libev
+ss_image='boris1993/shadowsocks-v2ray-docker:v3.2.4-1.1.0'
 ss_port=8080
 ss_container='ss'
+ss_v2ray_container='ss-v2ray'
 
 simple_obfs_image=liaohuqiu/simple-obfs
 simple_obfs_port=8443
@@ -20,13 +21,14 @@ function stop() {
 
 function run() {
     run_ss
-    run_simple_obsf
+    # run_simple_obsf
 }
 
 function run_ss() {
     # disable acl
     # _run_ss_container "ss-server -p 8388 -m aes-128-cfb -k $password -u --acl=/etc/local.acl"
-    _run_ss_container "ss-server -p 8388 -m aes-128-cfb -k $password -u"
+    # _run_ss_container "ss-server -p 8388 -m aes-128-cfb -k $password -u"
+    _run_ss_container "ss-server -s 0.0.0.0 -p 8388 -m aes-128-cfb -k $password -u --plugin v2ray-plugin --plugin-opts server"
 }
 
 function run_simple_obsf() {
@@ -40,7 +42,7 @@ function _run_ss_container() {
     args="$args -p $ss_port:8388/tcp"
     args="$args -p $ss_port:8388/udp"
     args="$args -v $prj_path/config/local.acl:/etc/local.acl"
-    run_cmd "docker run -d $args --name $ss_container $ss_image $cmd"
+    run_cmd "docker run -it $args --name $ss_container $ss_image $cmd"
 }
 
 function _run_simple_obsf_container() {
