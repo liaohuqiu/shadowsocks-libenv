@@ -10,8 +10,7 @@ from cpbox.tool import file
 from cpbox.tool import template
 from cpbox.tool import utils
 
-from cpdevops.remix import serverless
-from cpdevops.remix import matrix
+from cpbox.app.devops import DevOpsApp
 
 APP_NAME = 'ss'
 bypass_ipset_name = 'ss_spec_wan_bypass'
@@ -32,16 +31,14 @@ ss_port=8080
 ss_container='ss'
 ss_v2ray_container='ss-v2ray'
 
-simple_obfs_image=liaohuqiu/simple-obfs
-simple_obfs_port=8443
-simple_obfs_container=simple-obfs
-password='123466'
-
-class App(serverless.SlaveApp):
+class App(DevOpsApp):
 
     def __init__(self, **kwargs):
-        serverless.SlaveApp.__init__(self, 'ss')
+        DevOpsApp.__init__(self, 'ss')
         file.ensure_dir(self.app_config_dir)
+        file.ensure_dir(self.app_templates_dir)
+
+        self.ss_image = 'liaohuqiu/ss'
         self.ss_v2ray_container = 'ss-v2ray'
         self.simple_obfs_container = 'ss-obfs'
 
@@ -52,10 +49,15 @@ class App(serverless.SlaveApp):
     def run_ss(self):
         # _run_ss_container "ss-server -p 8388 -m aes-128-cfb -k $password -u --acl=/etc/local.acl"
         # _run_ss_container "ss-server -p 8388 -m aes-128-cfb -k $password -u"
-        self._run_ss_container "ss-server -s 0.0.0.0 -p 8388 -m aes-128-cfb -k $password -u --plugin v2ray-plugin --plugin-opts server"
+        cmd = "ss-server -s 0.0.0.0 -p 8388 -m aes-128-cfb -k $password -u --plugin v2ray-plugin --plugin-opts server"
+        self._run_ss_container(cmd)
+
+    def build_image(self):
+        cmd = 'docker build -t %s %s/docker' % (self.ss_image, self.root_dir)
+        self.shell_run(cmd)
 
     def run_obfs(self):
-        self._run_ss_container "ss-server -s 0.0.0.0 -p 8388 -m aes-128-cfb -k $password -u --plugin v2ray-plugin --plugin-opts server"
+        pass
 
     def _run_container(self, image_name, container_name, cmd, run_mod='d'):
         envs = []
@@ -73,4 +75,4 @@ class App(serverless.SlaveApp):
         self.shell_run(cmd)
 
 if __name__ == '__main__':
-    serverless.run_app(App)
+    functocli.run_app(App)
