@@ -19,13 +19,17 @@ class App(DevOpsApp):
         self.ss_v2ray_container = 'ss-v2ray'
         self.ss_obfs_container = 'ss-obfs'
 
+    def restart(self):
+        self.restart_ss_v2ray()
+        self.restart_ss_obfs()
+
     def stop_ss_v2ray(self):
         self.remove_container(self.ss_v2ray_container, force=True)
 
     def start_ss_v2ray(self):
         cmd = "ss-server -s 0.0.0.0 -p 8388 -m aes-128-cfb -k 123466 -u --plugin v2ray-plugin --plugin-opts server --acl=/etc/local.acl"
         ports = ['9443:8388/tcp', '9443:8388/udp']
-        self._run_container(self.ss_v2ray_container, cmd, '-it', ports=ports)
+        self._run_container(self.ss_v2ray_container, cmd, '-d', ports=ports)
 
     def stop_ss_obfs(self):
         self.remove_container(self.ss_obfs_container, force=True)
