@@ -21,7 +21,7 @@ class App(DevOpsApp):
 
     def restart(self):
         self.restart_ss_v2ray()
-        self.restart_ss_obfs()
+        # self.restart_ss_obfs()
 
     def stop_ss_v2ray(self):
         self.remove_container(self.ss_v2ray_container, force=True)
@@ -36,7 +36,7 @@ class App(DevOpsApp):
 
     def start_ss_obfs(self):
         cmd = "ss-server -s 0.0.0.0 -p 8388 -m aes-128-cfb -k 123466 -u --plugin obfs-server --plugin-opts 'obfs=tls' --acl=/etc/local.acl"
-        ports = ['18443:8388/tcp', '18443:8388/udp']
+        ports = ['29452:8388/tcp', '29452:8388/udp']
         self._run_container(self.ss_obfs_container, cmd, '-d', ports=ports)
 
     def restart_ss_v2ray(self):
